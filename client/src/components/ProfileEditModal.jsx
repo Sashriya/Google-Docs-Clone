@@ -37,16 +37,18 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
   }, [isOpen, user]);
 
   if (!isOpen) return null;
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    e.target.value = ""; 
+    e.target.value = "";
     setSelectedFile(file);
     setError("");
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result);
     reader.readAsDataURL(file);
   };
+
   const handleSave = async () => {
     if (!name.trim()) {
       setError("Name cannot be empty.");
@@ -58,6 +60,8 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
 
     try {
       let updatedUser = { ...user };
+
+      // ✅ Upload profile picture
       if (selectedFile) {
         const formData = new FormData();
         formData.append("profilePic", selectedFile);
@@ -69,25 +73,25 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          },
+          }
         );
         updatedUser = {
           ...updatedUser,
           profilePic: picRes.data.profilePic,
         };
       }
-      
+
+      // ✅ FIXED: correct endpoint /api/auth/me instead of /api/auth/update-profile
       if (name.trim() !== user.name) {
         const nameRes = await axios.patch(
-          "http://localhost:5000/api/auth/update-profile",
+          "http://localhost:5000/api/auth/me",
           { name: name.trim() },
-          { headers },
+          { headers }
         );
         updatedUser = { ...updatedUser, name: nameRes.data.name };
       }
-      
-      setUser(updatedUser);
 
+      setUser(updatedUser);
       setSuccessMsg("Profile updated successfully!");
       setSelectedFile(null);
       setPreview(null);
@@ -120,9 +124,7 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-[#F0F4FF] to-[#F9FBFD]">
           <div className="flex items-center gap-2">
             <MdPerson className="text-[#4285F4] text-xl" />
-            <h2 className="text-sm font-semibold text-gray-800">
-              Edit Profile
-            </h2>
+            <h2 className="text-sm font-semibold text-gray-800">Edit Profile</h2>
           </div>
           <button
             onClick={onClose}
@@ -132,7 +134,9 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
             <MdClose className="text-gray-500 text-lg" />
           </button>
         </div>
+
         <div className="px-6 py-6 space-y-5">
+          {/* Avatar */}
           <div className="flex flex-col items-center gap-2">
             <div
               className="relative group cursor-pointer"
@@ -175,6 +179,8 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
               onChange={handleFileChange}
             />
           </div>
+
+          {/* Name */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
               Display Name
@@ -192,6 +198,8 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none transition-all focus:border-[#4285F4] focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
             />
           </div>
+
+          {/* Email (read-only) */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
               Email
@@ -202,16 +210,18 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
                 {user?.email || "—"}
               </span>
             </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Email cannot be changed.
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Email cannot be changed.</p>
           </div>
+
+          {/* Error */}
           {error && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-2.5 rounded-xl">
               <MdErrorOutline className="flex-shrink-0 text-lg mt-0.5" />
               <span className="break-all">{error}</span>
             </div>
           )}
+
+          {/* Success */}
           {successMsg && (
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-2.5 rounded-xl">
               <MdCheck className="flex-shrink-0 text-green-500" />
@@ -219,6 +229,8 @@ const ProfileEditModal = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
+
+        {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t flex justify-end gap-2">
           <button
             onClick={onClose}
